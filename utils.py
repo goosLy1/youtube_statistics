@@ -15,6 +15,7 @@ def get_service():
 
 
 class Youtube:
+    ids = config.ids
 
     def get_existing_or_new_channel(self, channel: Dict[str, str]) -> Type[Channel]:
         with SessionLocal() as db:
@@ -41,12 +42,15 @@ class Youtube:
 
             return db_video_merged
 
-    def get_channels_statistics(self, channel_ids: List[str]) -> List[ChannelStatistics]:
+    def get_channels_statistics(self) -> List[ChannelStatistics]:
         yt_api_response = get_service().channels().list(
-            id=channel_ids, part='snippet, statistics').execute()
+            id=self.ids, part='snippet, statistics').execute()
         channel_statistics = yt_api_response.get('items')
+        # print(channel_statistics[0].get("id"))
         channel_statistics_models = list()
+        good_ids = list()
         for channel in channel_statistics:
+            good_ids.append(channel['id'])
             db_channel_merged = self.get_existing_or_new_channel(channel)
 
             db_channel_stat = ChannelStatistics(
@@ -57,25 +61,29 @@ class Youtube:
             )
             # channel_statistics_models.append(db_channel)
             channel_statistics_models.append(db_channel_stat)
+        print(good_ids)
+        self.ids = good_ids
+        print(self.ids)
         return channel_statistics_models
 
-    def get_video_ids_by_channel(self, id: str) -> List[str]:
-        uploads_playlist_id = id.replace('UC', 'UU')
-        video_ids = list()
-        next_page_token = ''
+    def get_video_ids_by_channel(self) -> List[str]:
+        for id in self.ids:
+            uploads_playlist_id = id.replace('UC', 'UU')
+            video_ids = list()
+            next_page_token = ''
 
-        while next_page_token is not None:
-            result = get_service().playlistItems().list(
-                part="contentDetails",
-                playlistId=uploads_playlist_id,
-                maxResults=50,
-                pageToken=next_page_token
-            ).execute()
-            next_page_token = result.get('nextPageToken')
-            items = result.get('items')
+            while next_page_token is not None:
+                result = get_service().playlistItems().list(
+                    part="contentDetails",
+                    playlistId=uploads_playlist_id,
+                    maxResults=50,
+                    pageToken=next_page_token
+                ).execute()
+                next_page_token = result.get('nextPageToken')
+                items = result.get('items')
 
-            for item in items:
-                video_ids.append(item['contentDetails']['videoId'])
+                for item in items:
+                    video_ids.append(item['contentDetails']['videoId'])
         return video_ids
 
     def get_videos_statistics(self, video_ids: List[str]) -> List[VideoStatistics]:

@@ -14,19 +14,19 @@ from datetime import datetime
 
 app = FastAPI()
 Base.metadata.create_all(bind=engine)
-ids = config.ids
 
 
 @app.on_event("startup")
 def startup():
     with SessionLocal() as db:
-        channel_models = Youtube().get_channels_statistics(ids)
+        yt_api_service = Youtube()
+        channel_models = yt_api_service.get_channels_statistics()
         db.add_all(channel_models)
         db.commit()
         video_models = list()
-        for id in ids:
-            video_ids = Youtube().get_video_ids_by_channel(id)
-            video_models.extend(Youtube().get_videos_statistics(video_ids))
+
+        video_ids = yt_api_service.get_video_ids_by_channel()
+        video_models.extend(yt_api_service.get_videos_statistics(video_ids))
         for model in video_models:
             db.add(model)
             db.commit()
