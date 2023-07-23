@@ -1,5 +1,6 @@
 import json
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Form
+import re
 from sqlalchemy import delete, distinct, func, select, exists, inspect
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
@@ -18,9 +19,9 @@ Base.metadata.create_all(bind=engine)
 
 
 @app.on_event("startup")
-def startup():
+def startup(ids=config.ids):
     with SessionLocal() as db:
-        yt_api_service = Youtube()
+        yt_api_service = Youtube(ids)
         channel_models = yt_api_service.get_channels_statistics()
         deleted_channel_models = yt_api_service.handle_deleted_channels()
         channel_models.extend(deleted_channel_models)
@@ -110,6 +111,14 @@ def get_statistics(request: Request, db: Session = Depends(get_db)):
 
     return templates.TemplateResponse('index.html', {'request': request, 'data': result_last, 'stonks': stonks})
     # return {"message": "ok"}
+
+
+@app.post('/')
+def add_new_channel(request: Request, data=Form()):
+    ids = re.split(",", data)
+    print(ids)
+    startup(ids)
+    return {"message": "ok"}
 
 
 @app.get('/channel/{id}')

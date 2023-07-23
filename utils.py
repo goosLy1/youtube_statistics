@@ -15,8 +15,11 @@ def get_service():
 
 
 class Youtube:
-    ids = config.ids
+    # ids = config.ids
     bad_ids = None
+
+    def __init__(self, ids: List[str]) -> None:
+        self.ids = ids
 
     def get_existing_or_new_channel(self, channel: Dict[str, str] | List[str]) -> Type[Channel]:
         with SessionLocal() as db:
