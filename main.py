@@ -1,8 +1,9 @@
 import json
 from fastapi import Depends, FastAPI, Request
-from sqlalchemy import distinct, func, select, exists, inspect
+from sqlalchemy import delete, distinct, func, select, exists, inspect
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 
 from utils import get_service, Youtube
 from configurator import core_configurator as config
@@ -120,6 +121,15 @@ def get_videos_stat(request: Request, id: str, db: Session = Depends(get_db)):
 
     return templates.TemplateResponse('video.html', {'request': request, 'data': result_last})
     # return {"message": "ok"}
+
+
+@app.delete('/channel/{id}')
+def delete_channel(request: Request, id: str, db: Session = Depends(get_db)):
+    stmt = delete(Channel).where(Channel.id == id)
+    db.execute(stmt)
+    db.commit()
+
+    return {"message": "ok"}
 
 
 @app.get('/channel/chart/{id}')
