@@ -21,6 +21,8 @@ def startup():
     with SessionLocal() as db:
         yt_api_service = Youtube()
         channel_models = yt_api_service.get_channels_statistics()
+        deleted_channel_models = yt_api_service.handle_deleted_channels()
+        channel_models.extend(deleted_channel_models)
         db.add_all(channel_models)
         db.commit()
         video_models = list()

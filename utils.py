@@ -16,13 +16,20 @@ def get_service():
 
 class Youtube:
     ids = config.ids
+    bad_ids = None
 
-    def get_existing_or_new_channel(self, channel: Dict[str, str]) -> Type[Channel]:
+    def get_existing_or_new_channel(self, channel: Dict[str, str] | List[str]) -> Type[Channel]:
         with SessionLocal() as db:
-            db_channel = Channel(
-                id=channel['id'],
-                title=channel['snippet']['title']
-            )
+            if isinstance(channel, Dict):
+                db_channel = Channel(
+                    id=channel['id'],
+                    title=channel['snippet']['title']
+                )
+            else:
+                db_channel = Channel(
+                    id=channel,
+                    title='This channel was deleted'.upper()
+                )
             db_channel_merged = db.merge(db_channel)
             return db_channel_merged
 
@@ -62,7 +69,9 @@ class Youtube:
             # channel_statistics_models.append(db_channel)
             channel_statistics_models.append(db_channel_stat)
         print(good_ids)
+        self.bad_ids = list(set(self.ids) ^ set(good_ids))
         self.ids = good_ids
+        print(self.bad_ids)
         print(self.ids)
         return channel_statistics_models
 
@@ -115,6 +124,20 @@ class Youtube:
             video_statistics_models.append(db_video_stat)
         return video_statistics_models
 
+    def handle_deleted_channels(self) -> List[ChannelStatistics]:
+        bad_channel_statistics_models = list()
+        for id in self.bad_ids:
+            db_channel_merged = self.get_existing_or_new_channel(id)
+
+            db_channel_stat = ChannelStatistics(
+                view_count=-1,
+                subscriber_count=-1,
+                video_count=-1,
+                channel=db_channel_merged
+            )
+            # channel_statistics_models.append(db_channel)
+            bad_channel_statistics_models.append(db_channel_stat)
+        return bad_channel_statistics_models
 
 # def add_channel_statistics_in_db(db: Session, models: List[ChannelStatistics]):
 #     db.add_all(models)
