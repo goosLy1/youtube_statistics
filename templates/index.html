@@ -46,7 +46,7 @@
           {% endfor %}
           <td>{{d.ChannelStatistics.subscriber_count}}</td>
           <td>{{d.ChannelStatistics.video_count}}</td>
-          <td>{{d.ChannelStatistics.fetch_date.strftime('%d.%m.%Y, %H:%M')}}</td>
+          <td>{{d.ChannelStatistics.fetch_date | datetimefilter}}</td>
         </tr>
         
         {% endfor %}
@@ -59,6 +59,7 @@
   <script>
     function delete_channel(id){
       fetch("/channel/"+id, {method: "DELETE"});
+      if(!alert(`Channel with ID: ${id} successfully deleted.`)){window.location.reload();}
      
     }
   </script>

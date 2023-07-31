@@ -8,6 +8,7 @@ from fastapi.responses import RedirectResponse
 
 from utils import get_service, Youtube
 from configurator import core_configurator as config
+from filters import datetimefilter
 
 
 from models import Base, Channel, ChannelStatistics, Video, VideoStatistics
@@ -45,10 +46,7 @@ def get_db():
 
 
 templates = Jinja2Templates(directory='templates')
-
-
-# username:str = config.cp2_user
-# password:str = config.cp2_password
+templates.env.filters['datetimefilter'] = datetimefilter
 
 
 @app.get('/')
@@ -115,10 +113,10 @@ def get_statistics(request: Request, db: Session = Depends(get_db)):
 
 @app.post('/')
 def add_new_channel(request: Request, data=Form()):
-    ids = re.split(",", data)
+    ids = re.split(', |,| ,', data)
     print(ids)
     startup(ids)
-    return {"message": "ok"}
+    return RedirectResponse('/', status_code=302)
 
 
 @app.get('/channel/{id}')
@@ -138,7 +136,7 @@ def delete_channel(request: Request, id: str, db: Session = Depends(get_db)):
     db.execute(stmt)
     db.commit()
 
-    return {"message": "ok"}
+    return RedirectResponse('/', status_code=302)
 
 
 @app.get('/channel/chart/{id}')

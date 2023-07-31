@@ -33,7 +33,7 @@
         <tr>
           <th scope="row"><a title="open video on youtube" href="https://www.youtube.com/watch?v={{d.Video.id}}">{{d.Video.id}}</a></th>
           <th scope="row"></a>{{d.Video.title}}</th>
-          <td>{{d.Video.pub_date.strftime('%d.%m.%Y, %H:%M')}}</td>
+          <td>{{d.Video.pub_date | datetimefilter}}</td>
           <td>{{d.VideoStatistics.view_count}}</td>
           <td>{{d.VideoStatistics.like_count}}</td>
           <td>{{d.VideoStatistics.comment_count}}</td>
@@ -42,7 +42,7 @@
           {% else %}
             <td><i class="fas fa-dollar-sign"></i></td>
           {% endif %}
-          <td>{{d.VideoStatistics.fetch_date.strftime('%d.%m.%Y, %H:%M')}}</td>         
+          <td>{{d.VideoStatistics.fetch_date | datetimefilter}}</td>         
         </tr>
         {% endfor %}
       </tbody>
